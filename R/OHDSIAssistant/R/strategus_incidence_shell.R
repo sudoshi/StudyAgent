@@ -8,6 +8,7 @@
 #' @param indexDir phenotype index directory (contains definitions/)
 #' @param interactive whether to prompt for inputs
 #' @param bannerPath optional path to ASCII banner
+#' @param studyAgentBaseDir base directory to resolve relative paths (outputDir, indexDir, bannerPath)
 #' @param reset when TRUE, delete outputDir before running
 #' @param allowCache reuse cached artifacts when present
 #' @param promptOnCache prompt before using cached artifacts
@@ -22,6 +23,7 @@ runStrategusIncidenceShell <- function(outputDir = "demo-strategus-cohort-incide
                                       indexDir = Sys.getenv("PHENOTYPE_INDEX_DIR", "data/phenotype_index"),
                                       interactive = TRUE,
                                       bannerPath = "ohdsi-logo-ascii.txt",
+                                      studyAgentBaseDir = Sys.getenv("STUDY_AGENT_BASE_DIR", ""),
                                       reset = FALSE,
                                       allowCache = TRUE,
                                       promptOnCache = TRUE) {
@@ -53,6 +55,17 @@ runStrategusIncidenceShell <- function(outputDir = "demo-strategus-cohort-incide
 
   write_json <- function(x, path) {
     jsonlite::write_json(x, path, pretty = TRUE, auto_unbox = TRUE)
+  }
+
+  is_absolute_path <- function(path) {
+    grepl("^(/|[A-Za-z]:[\\\\/])", path)
+  }
+
+  resolve_path <- function(path, base_dir = "") {
+    if (!nzchar(path)) return(path)
+    if (is_absolute_path(path)) return(path)
+    if (nzchar(base_dir)) return(file.path(base_dir, path))
+    path
   }
 
   copy_cohort_json <- function(source_id, dest_id, dest_dir, index_def_dir) {
@@ -120,6 +133,11 @@ runStrategusIncidenceShell <- function(outputDir = "demo-strategus-cohort-incide
     set_in(obj, segs, value)
   }
 
+  study_base_dir <- ""
+  if (nzchar(studyAgentBaseDir)) {
+    study_base_dir <- normalizePath(studyAgentBaseDir, winslash = "/", mustWork = FALSE)
+  }
+  outputDir <- resolve_path(outputDir, study_base_dir)
   outputDir <- normalizePath(outputDir, winslash = "/", mustWork = FALSE)
   if (isTRUE(reset) && dir.exists(outputDir)) {
     ok <- TRUE
@@ -131,12 +149,11 @@ runStrategusIncidenceShell <- function(outputDir = "demo-strategus-cohort-incide
     }
   }
   base_dir <- outputDir
-  index_dir <- normalizePath(indexDir, winslash = "/", mustWork = FALSE)
-  if (!dir.exists(index_dir) && !grepl("^/", indexDir)) {
+  index_dir <- resolve_path(indexDir, study_base_dir)
+  index_dir <- normalizePath(index_dir, winslash = "/", mustWork = FALSE)
+  if (!dir.exists(index_dir) && !is_absolute_path(indexDir) && !nzchar(studyAgentBaseDir)) {
     alt <- file.path(getwd(), "OHDSI-Study-Agent", indexDir)
-    if (dir.exists(alt)) {
-      index_dir <- normalizePath(alt, winslash = "/", mustWork = FALSE)
-    }
+    if (dir.exists(alt)) index_dir <- normalizePath(alt, winslash = "/", mustWork = FALSE)
   }
   index_def_dir <- file.path(index_dir, "definitions")
   if (!dir.exists(index_def_dir)) stop(sprintf("Missing phenotype index definitions folder: %s", index_def_dir))
@@ -156,8 +173,9 @@ runStrategusIncidenceShell <- function(outputDir = "demo-strategus-cohort-incide
   ensure_dir(scripts_dir)
 
   if (interactive) {
-    banner_path <- normalizePath(bannerPath, winslash = "/", mustWork = FALSE)
-    if (!file.exists(banner_path) && !grepl("^/", bannerPath)) {
+    banner_path <- resolve_path(bannerPath, study_base_dir)
+    banner_path <- normalizePath(banner_path, winslash = "/", mustWork = FALSE)
+    if (!file.exists(banner_path) && !is_absolute_path(bannerPath) && !nzchar(studyAgentBaseDir)) {
       alt <- file.path(getwd(), "OHDSI-Study-Agent", bannerPath)
       if (file.exists(alt)) banner_path <- normalizePath(alt, winslash = "/", mustWork = FALSE)
     }

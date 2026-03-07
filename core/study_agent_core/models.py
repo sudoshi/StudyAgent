@@ -33,6 +33,11 @@ class PhenotypeRecommendationAdviceInput(BaseModel):
     llm_result: Optional[Dict[str, Any]] = None
 
 
+class PhenotypeValidationReviewInput(BaseModel):
+    disease_name: str = ""
+    llm_result: Optional[Dict[str, Any]] = None
+
+
 class ConceptSetDiffOutput(BaseModel):
     plan: str
     findings: List[Dict[str, Any]] = Field(default_factory=list)
@@ -70,4 +75,10 @@ class PhenotypeRecommendationAdviceOutput(BaseModel):
     advice: str
     next_steps: List[str] = Field(default_factory=list)
     questions: List[str] = Field(default_factory=list)
+    mode: str
+
+
+class PhenotypeValidationReviewOutput(BaseModel):
+    label: str
+    rationale: str
     mode: str

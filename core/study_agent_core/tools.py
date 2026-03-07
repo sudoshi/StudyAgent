@@ -10,6 +10,8 @@ from .models import (
     PhenotypeImprovementsOutput,
     PhenotypeRecommendationAdviceInput,
     PhenotypeRecommendationAdviceOutput,
+    PhenotypeValidationReviewInput,
+    PhenotypeValidationReviewOutput,
     PhenotypeRecommendationsInput,
     PhenotypeRecommendationsOutput,
 )
@@ -453,6 +455,36 @@ def phenotype_recommendation_advice(
         advice=advice,
         next_steps=next_steps,
         questions=questions,
+        mode=mode,
+    )
+    return _model_dump(output)
+
+
+def phenotype_validation_review(
+    disease_name: str,
+    llm_result: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    payload = PhenotypeValidationReviewInput(
+        disease_name=disease_name,
+        llm_result=llm_result,
+    )
+
+    label = "unknown"
+    rationale = ""
+    mode = "llm"
+
+    if payload.llm_result and isinstance(payload.llm_result, dict):
+        label = payload.llm_result.get("label") or "unknown"
+        if label not in ("yes", "no", "unknown"):
+            label = "unknown"
+        rationale = payload.llm_result.get("rationale") or ""
+    else:
+        mode = "stub"
+        rationale = "No LLM response available."
+
+    output = PhenotypeValidationReviewOutput(
+        label=label,
+        rationale=rationale,
         mode=mode,
     )
     return _model_dump(output)

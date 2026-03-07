@@ -3,6 +3,7 @@ from .tools import (
     phenotype_improvements,
     phenotype_recommendation_advice,
     phenotype_recommendations,
+    phenotype_validation_review,
     propose_concept_set_diff,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "phenotype_improvements",
     "phenotype_recommendation_advice",
     "phenotype_recommendations",
+    "phenotype_validation_review",
     "propose_concept_set_diff",
 ]

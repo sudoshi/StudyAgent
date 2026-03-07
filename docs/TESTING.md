@@ -92,6 +92,24 @@ $env:LLM_LOG = "1"
 study-agent-acp
 ```
 
+If you launch from outside the repo root, set `STUDY_AGENT_BASE_DIR` so relative paths (index, banner, outputs) resolve correctly:
+
+```powershell
+$env:STUDY_AGENT_BASE_DIR = "C:\path\to\OHDSI-Study-Agent"
+```
+
+Windows note: ACP defaults MCP to oneshot mode on Windows to avoid stdio lockups. You can also set it explicitly:
+
+```powershell
+$env:STUDY_AGENT_MCP_ONESHOT = "1"
+```
+
+ACP uses a threaded HTTP server by default. To disable threading:
+
+```powershell
+$env:STUDY_AGENT_THREADING = "0"
+```
+
 Health/tools checks:
 
 ```powershell
