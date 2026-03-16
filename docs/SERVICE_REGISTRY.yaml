@@ -110,3 +110,115 @@ services:
       - questions
     validation:
       - core.phenotype_intent_split schema validation
+
+  finngen_cohort_operations:
+    endpoint: /flows/finngen/cohort-operations
+    description: Optional FINNGEN CohortOperations2 cohort compilation and inspection workspace.
+    mcp_tools:
+      - finngen_cohort_operations_catalog
+    input:
+      - cohort_definition
+      - source_key
+      - execution_mode
+    output:
+      - compile_summary
+      - inclusion_statistics
+      - generated_artifacts
+    validation:
+      - registration gated by FINNGEN_COHORT_OPERATIONS_ENABLED
+      - writes require explicit confirmation before execution tools are added
+    ui_hints:
+      title: Cohort Operations
+      summary: Compile cohorts, inspect inclusion criteria, and review attrition with a visual workbench.
+      accent: rose
+      repository: https://github.com/FINNGEN/CohortOperations2
+      workspace: cohort-workbench
+      visualizations:
+        - Attrition funnel
+        - Criteria timeline
+        - Overlap matrix
+        - SQL artifact panel
+
+  finngen_co2_analysis:
+    endpoint: /flows/finngen/co2-analysis
+    description: Optional FINNGEN CO2AnalysisModules analysis catalog and execution surface.
+    mcp_tools:
+      - finngen_co2_analysis_catalog
+    input:
+      - analysis_module
+      - cohort_bundle
+      - output_format
+    output:
+      - execution_summary
+      - model_artifacts
+      - visualization_payloads
+    validation:
+      - registration gated by FINNGEN_CO2_ANALYSIS_ENABLED
+      - job execution remains opt-in and source-scoped
+    ui_hints:
+      title: CO2 Analysis Modules
+      summary: Explore module families, stage analyses, and review outcome visuals from a module gallery.
+      accent: amber
+      repository: https://github.com/FINNGEN/CO2AnalysisModules
+      workspace: analysis-gallery
+      visualizations:
+        - Forest plot
+        - Heatmap matrix
+        - Execution timeline
+        - Covariate balance board
+
+  finngen_hades_extras:
+    endpoint: /flows/finngen/hades-extras
+    description: Optional FINNGEN HadesExtras artifact generation and SQL rendering helpers.
+    mcp_tools:
+      - finngen_hades_extras_catalog
+    input:
+      - package_spec
+      - sql_template
+      - render_target
+    output:
+      - render_summary
+      - package_manifest
+      - artifact_diff
+    validation:
+      - registration gated by FINNGEN_HADES_EXTRAS_ENABLED
+      - generated artifacts remain reviewable before any publish step
+    ui_hints:
+      title: HADES Extras
+      summary: Render SQL, compare generated packages, and inspect artifact pipelines before release.
+      accent: cyan
+      repository: https://github.com/FINNGEN/HadesExtras
+      workspace: artifact-studio
+      visualizations:
+        - SQL diff view
+        - Artifact pipeline
+        - Manifest dependency graph
+        - Output gallery
+
+  finngen_romopapi:
+    endpoint: /flows/finngen/romopapi
+    description: Optional FINNGEN ROMOPAPI metadata and OMOP query exploration service.
+    mcp_tools:
+      - finngen_romopapi_catalog
+    input:
+      - query_template
+      - schema_scope
+      - projection
+    output:
+      - metadata_summary
+      - lineage_trace
+      - result_profile
+    validation:
+      - registration gated by FINNGEN_ROMOPAPI_ENABLED
+      - initial surface is read-only metadata and query planning
+    ui_hints:
+      title: ROMOPAPI
+      summary: Browse schema metadata, draft OMOP queries, and inspect lineage before execution.
+      accent: indigo
+      repository: https://github.com/FINNGEN/ROMOPAPI
+      workspace: omop-query-canvas
+      visualizations:
+        - Schema graph
+        - Query canvas
+        - Lineage panel
+        - Result profile grid

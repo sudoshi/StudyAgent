@@ -18,6 +18,25 @@ SERVICES = [
     {"name": "phenotype_intent_split", "endpoint": "/flows/phenotype_intent_split"},
 ]
 SERVICE_REGISTRY_PATH = os.getenv("STUDY_AGENT_SERVICE_REGISTRY", "docs/SERVICE_REGISTRY.yaml")
+OPTIONAL_SERVICES = [
+    ("FINNGEN_COHORT_OPERATIONS_ENABLED", {"name": "finngen_cohort_operations", "endpoint": "/flows/finngen/cohort-operations"}),
+    ("FINNGEN_CO2_ANALYSIS_ENABLED", {"name": "finngen_co2_analysis", "endpoint": "/flows/finngen/co2-analysis"}),
+    ("FINNGEN_HADES_EXTRAS_ENABLED", {"name": "finngen_hades_extras", "endpoint": "/flows/finngen/hades-extras"}),
+    ("FINNGEN_ROMOPAPI_ENABLED", {"name": "finngen_romopapi", "endpoint": "/flows/finngen/romopapi"}),
+]
+
+
+def _env_enabled(name: str) -> bool:
+    value = os.getenv(name, "").strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
+def _runtime_services() -> list[Dict[str, Any]]:
+    services = [dict(entry) for entry in SERVICES]
+    for env_name, service in OPTIONAL_SERVICES:
+        if _env_enabled(env_name):
+            services.append(dict(service))
+    return services
 
 
 def _read_json(handler: BaseHTTPRequestHandler) -> Dict[str, Any]:
@@ -62,7 +81,7 @@ def _load_registry_services() -> tuple[list[Dict[str, Any]], list[str]]:
             continue
         endpoint = entry.get("endpoint")
         if endpoint:
-            services.append({"name": name, "endpoint": endpoint})
+            services.append({"name": name, **entry})
         else:
             warnings.append(f"service_registry_missing_endpoint:{name}")
     return services, warnings
@@ -99,7 +118,7 @@ class ACPRequestHandler(BaseHTTPRequestHandler):
         if self.path == "/services":
             registry_services, warnings = _load_registry_services()
             registry_map = {svc["endpoint"]: svc for svc in registry_services}
-            runtime_map = {svc["endpoint"]: svc for svc in SERVICES}
+            runtime_map = {svc["endpoint"]: svc for svc in _runtime_services()}
 
             services = []
             for endpoint, svc in registry_map.items():
@@ -177,6 +196,68 @@ class ACPRequestHandler(BaseHTTPRequestHandler):
                     traceback.print_exc()
                 _write_json(self, 500, {"error": "flow_failed", "detail": str(exc) if self.debug else None})
                 return
+            status = 200 if result.get("status") != "error" else 500
+            _write_json(self, status, result)
+            return
+
+        if self.path == "/flows/finngen/cohort-operations":
+            try:
+                body = _read_json(self)
+            except Exception as exc:
+                _write_json(self, 400, {"error": f"invalid_json: {exc}"})
+                return
+            result = self.agent.run_finngen_cohort_operations_flow(
+                source=body.get("source") or {},
+                cohort_definition=body.get("cohort_definition") or {},
+                execution_mode=body.get("execution_mode") or "preview",
+            )
+            status = 200 if result.get("status") != "error" else 500
+            _write_json(self, status, result)
+            return
+
+        if self.path == "/flows/finngen/co2-analysis":
+            try:
+                body = _read_json(self)
+            except Exception as exc:
+                _write_json(self, 400, {"error": f"invalid_json: {exc}"})
+                return
+            result = self.agent.run_finngen_co2_analysis_flow(
+                source=body.get("source") or {},
+                module_key=body.get("module_key") or "",
+                cohort_label=body.get("cohort_label") or "",
+                outcome_name=body.get("outcome_name") or "",
+            )
+            status = 200 if result.get("status") != "error" else 500
+            _write_json(self, status, result)
+            return
+
+        if self.path == "/flows/finngen/hades-extras":
+            try:
+                body = _read_json(self)
+            except Exception as exc:
+                _write_json(self, 400, {"error": f"invalid_json: {exc}"})
+                return
+            result = self.agent.run_finngen_hades_extras_flow(
+                source=body.get("source") or {},
+                sql_template=body.get("sql_template") or "",
+                package_name=body.get("package_name") or "",
+                render_target=body.get("render_target") or "",
+            )
+            status = 200 if result.get("status") != "error" else 500
+            _write_json(self, status, result)
+            return
+
+        if self.path == "/flows/finngen/romopapi":
+            try:
+                body = _read_json(self)
+            except Exception as exc:
+                _write_json(self, 400, {"error": f"invalid_json: {exc}"})
+                return
+            result = self.agent.run_finngen_romopapi_flow(
+                source=body.get("source") or {},
+                schema_scope=body.get("schema_scope") or "",
+                query_template=body.get("query_template") or "",
+            )
             status = 200 if result.get("status") != "error" else 500
             _write_json(self, status, result)
             return
