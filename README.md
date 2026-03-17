@@ -204,6 +204,16 @@ Below is a set of planned study agent services, organized by category. For each 
 **Output:** Directed acyclic graph of known causal/associative relations (LLM + literature discovery).  
 **Validation:** Consistency with cited relations and domain plausibility.
 
+#### `explain_cohort_diagnostics`
+**Input:** The user's study intent statement and cohort diagnostics output including code to run and the results files  
+**Output:** narrative summary / report of the analysis.  
+**Validation:** Correctly reported summary of the methods and results.
+
+#### `explain_incidence/estimation/characterization_results`
+**Input:** The user's study intent statement and cohort diagnostics and a completed analysis with strategus output folders with code to run and the results files (incidence/estimation/characterization).  
+**Output:** narrative summary / report of the analysis.  
+**Validation:** Correctly reported summary of the methods and results.
+
 ### High Level Operational
 
 #### `strategus_*`
@@ -266,9 +276,9 @@ Below is a set of planned study agent services, organized by category. For each 
 **Validation:** Reproducible execution outputs; summary tied to diagnostics.
 
 #### `phenotype_validation_review`
-**Input:** Selected phenotype definition(s).  
-**Output:** Code to sample cases for validation and compare to known phenotype performance.  
-**Validation:** Sampling logic review; user confirmation before running.
+**Input:** Selected phenotype definition (usually for an outcome cohort) and a narrative clinical description with differential diagnoses and known associated factors for validation and to compare to known phenotype performance.  
+**Output:** code to extract sample cases based on the clinical description and LLM-assessment of a sample (user-specified or random) of cohort records stripped of PHI. 
+**Validation:** Sampling logic review; user confirmation.
 
 #### `cohort_definition_build`
 **Input:** Phenotype/covariate intent without a cohort definition.  
