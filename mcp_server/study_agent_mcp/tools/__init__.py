@@ -29,6 +29,7 @@ OPTIONAL_TOOL_MODULES: list[tuple[str, str]] = [
     ("FINNGEN_CO2_ANALYSIS_ENABLED", "study_agent_mcp.tools.finngen_co2_analysis"),
     ("FINNGEN_HADES_EXTRAS_ENABLED", "study_agent_mcp.tools.finngen_hades_extras"),
     ("FINNGEN_ROMOPAPI_ENABLED", "study_agent_mcp.tools.finngen_romopapi"),
+    ("ETL_MAPPING_WORKBENCH_ENABLED", "study_agent_mcp.tools.etl_mapping_workbench"),
 ]
 
 
